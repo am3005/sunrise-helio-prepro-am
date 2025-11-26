@@ -47,7 +47,7 @@ def main(spec_path: str, labels_path: str) -> None:
     # ---------- ADAPTIVE GAUSSIAN ----------
     gauss_spec, background = gaussian_background_subtract(
         spectrogram,
-        sigma_freq=1.0,   # you can tune these and talk about why
+        sigma_freq=1.0,  
         sigma_time=20.0,
         clip_min=0.0,
     )
