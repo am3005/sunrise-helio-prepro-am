@@ -1,11 +1,3 @@
-"""
-This file is adapted from the Kasper-Heliophysics-MDP/Prepro-F25 repository.
-Original implementation: Fall 2025 Kasper Heliophysics MDP cohort (Aashi Mishra listed as coauthor).
-
-Adapted & refactored for personal preprocessing project work presentation:
-Aashi Mishra
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
