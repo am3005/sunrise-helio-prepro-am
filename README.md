@@ -57,6 +57,7 @@ Raw
 Adaptive Gaussian
 
 Median filter
+
 Computes SNR for each + displays comparative plots.
 Use case: tune filter parameters and visually validate preprocessing.
 
