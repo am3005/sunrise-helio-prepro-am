@@ -34,6 +34,7 @@ from upstream_utils.compute_snr import (
 )
 from upstream_utils.adaptive_gaussian import gaussian_background_subtract
 from upstream_utils.median_filtering import median_denoise
+from upstream_utils.plot_spectrogram import plot_spectrogram_comparison
 
 
 def report(name, snr_db, signal_mean, noise_mean, per_channel_summary):
@@ -89,7 +90,7 @@ def main(spec_path: str, labels_path: str) -> None:
     median_summary = summarize_per_channel_snr(median_per_channel)
     report("MEDIAN FILTER", median_snr_db, median_signal, median_noise, median_summary)
 
-    # ---------- Summary table ----------
+    # ---------- Summary tables ----------
     print("\n=== GLOBAL SNR COMPARISON (dB) ===")
     print(f"Raw      : {raw_snr_db:.2f}")
     print(f"Gaussian : {gauss_snr_db:.2f}")
@@ -111,7 +112,7 @@ def main(spec_path: str, labels_path: str) -> None:
             ax.axvspan(entry["start_idx"], entry["end_idx"],
                        color="red", alpha=0.15)
 
-    # --- Figure 1: flux time series comparison (unchanged from original) ---
+    # --- Figure 1: flux time series comparison ---
     fig1 = plt.figure(figsize=(14, 9))
 
     ax1 = plt.subplot(3, 1, 1)
@@ -145,6 +146,18 @@ def main(spec_path: str, labels_path: str) -> None:
     ax4.set_title("Per-channel SNR by denoising method")
     ax4.legend()
     plt.tight_layout()
+
+    # --- Figures 3 & 4: 2D spectrogram before/after each filtering method ---
+    plot_spectrogram_comparison(
+        spectrogram, gauss_spec,
+        method_name="Adaptive Gaussian Background Subtraction",
+        label_file=labels_path,
+    )
+    plot_spectrogram_comparison(
+        spectrogram, median_spec,
+        method_name="Median Filtering",
+        label_file=labels_path,
+    )
 
     plt.show()
 

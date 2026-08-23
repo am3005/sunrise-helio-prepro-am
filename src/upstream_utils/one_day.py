@@ -20,17 +20,29 @@ import sys
 BASE_URL = "https://soleil.i4ds.ch/solarradio/data/2002-20yy_Callisto/"
 BASE_LABELS_URL = "https://soleil.i4ds.ch/solarradio/data/BurstLists/2010-yyyy_Monstein"
 
-def download_fits_from_gz(url: str) -> np.ndarray:
-    """Download a .fit.gz URL and return the FITS data as a numpy array."""
-    r = requests.get(url, stream=True)
-    r.raise_for_status()
 
-    # Decompress in memory
-    with gzip.GzipFile(fileobj=io.BytesIO(r.content)) as gz:
-        with fits.open(io.BytesIO(gz.read())) as hdul:
-            data = hdul[0].data
-            return np.array(data)
-        
+def download_fits_from_gz(url: str) -> np.ndarray | None:
+    """
+    Download a .fit.gz URL and return the FITS data as a numpy array.
+
+    Returns None (and prints a warning) if the file can't be downloaded,
+    decompressed, or parsed, rather than raising and aborting the entire
+    day's collection over a single bad file.
+    """
+    try:
+        r = requests.get(url, stream=True, timeout=30)
+        r.raise_for_status()
+
+        # Decompress in memory
+        with gzip.GzipFile(fileobj=io.BytesIO(r.content)) as gz:
+            with fits.open(io.BytesIO(gz.read())) as hdul:
+                data = hdul[0].data
+                return np.array(data)
+    except (requests.RequestException, OSError, gzip.BadGzipFile) as e:
+        print(f"Warning: failed to download/parse {url}: {e}")
+        return None
+
+
 def circular_sort(files: List[str], offset: str, url: str) -> List[str]:
     """
     The times on eCallisto are in UTC. So the beginning of the day locally
@@ -188,7 +200,8 @@ def one_day(station: str, year: int, month: int, day: int, time: str = "000000",
     arrays = []
     burst_indices = []
     current_idx = 0
-    
+    skipped_files = 0
+
     for url in tqdm(sorted_files, desc="Downloading FITS files"):
 
         arr = download_fits_from_gz(url)
@@ -198,6 +211,11 @@ def one_day(station: str, year: int, month: int, day: int, time: str = "000000",
                 burst_indices, current_idx = find_bursts(arr, burst_list, url, burst_indices, current_idx)
                 
             arrays.append(arr)
+        else:
+            skipped_files += 1
+
+    if skipped_files > 0:
+        print(f"Warning: skipped {skipped_files}/{len(sorted_files)} files due to download/parse errors")
 
     if not arrays:
         raise ValueError("No valid FITS data found.")
