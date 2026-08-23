@@ -202,7 +202,7 @@ def one_day(station: str, year: int, month: int, day: int, time: str = "000000",
     if not arrays:
         raise ValueError("No valid FITS data found.")
     
-    # Concatenate along time axis (axis=0)
+    # Concatenate along time axis (axis=1)
     big_array = np.concatenate(arrays, axis=1)
     big_array = np.flipud(big_array)
     return big_array, burst_indices
